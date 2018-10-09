@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCH_CHROOT_INSTALL="doom-chroot-install.sh"
+ARCH_CHROOT_INSTALL="chroot-install.sh"
 SD=$(< /tmp/doom-sd)
 ROOT_PSSWD=$(< /tmp/doom-root-psswd)
 

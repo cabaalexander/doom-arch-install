@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -e
+
+trap "{ clear; }" SIGINT SIGTERM EXIT
+
 BRANCH=${1:-master}
 REPO_RAW="https://gitlab.com/cabaalexander/doom-arch-install/raw/$BRANCH"
 
@@ -11,11 +15,11 @@ getRepoExecutable(){
   chmod u+x $DEST
 }
 
-getRepoExecutable doom-format.sh
-getRepoExecutable doom-chroot.sh
+getRepoExecutable format.sh
+getRepoExecutable chroot.sh
 
-./doom-format.sh
-./doom-chroot.sh
+./format.sh
+./chroot.sh
 
 reboot
 

@@ -1,6 +1,14 @@
 #!/bin/bash
 
-inputBox(){
+__sd_size(){
+  local SD=${1:-"sda"}
+  lsblk \
+    | egrep "^$SD.*$" \
+    | awk -F' ' '{print $4}' \
+    | tr -d "[[:alpha:]]"
+}
+
+__input_box(){
   if [ "$1" == "-p" ]
   then
     local TYPE="--passwordbox"
@@ -22,18 +30,25 @@ inputBox(){
     "$DEFAULT_VALUE" 2> $FD_FILE || exit
 }
 
-# Dialog
-inputBox "Hard drive path" /tmp/doom-sd "sda"
-inputBox "Swap space (GB)" /tmp/doom-swap "1"
-inputBox "Root space (GB)" /tmp/doom-root "4"
-inputBox "Hostname" /tmp/doom-hostname "archion-pc"
-inputBox -p "Root password" /tmp/doom-root-psswd "welc0me"
-
-# Variables
-SWAP=$(< /tmp/doom-swap)
-ROOT=$(< /tmp/doom-root)
+# Dialog\Prompt
+__input_box "Hard drive path" /tmp/doom-sd "sda"
 SD=$(< /tmp/doom-sd)
+
+__input_box "Swap space (GB)" /tmp/doom-swap "1"
+SWAP=$(< /tmp/doom-swap)
+
+SD_SIZE_LEFT=$(($(__sd_size $SD) - $SWAP))
+
+__input_box "Root space (GB)" /tmp/doom-root "$SD_SIZE_LEFT"
+ROOT=$(< /tmp/doom-root)
+
+__input_box "Hostname" /tmp/doom-hostname "archlinux"
 HOSTNAME=$(< /tmp/doom-hostname)
+
+__input_box -p "Root password" /tmp/doom-root-psswd "welc0me"
+
+read -p "All sure?" Q
+[[ "Q" ]] || exit 0
 
 fdisk /dev/${SD} <<EOF
 o
