@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -e
+
+. ./.env
+
 ARCH_CHROOT_INSTALL="chroot-install.sh"
-SD=$(< /tmp/doom-sd)
-ROOT_PSSWD=$(< /tmp/doom-root-psswd)
 
 cat <<EOF > /mnt/$ARCH_CHROOT_INSTALL
 #!/bin/bash
