@@ -35,6 +35,8 @@ __execute(){
   __execute ${FILES[*]}
 }
 
+timedatectl set-ntp true
+
 __get_repo_executable prompt.sh
 __get_repo_executable format.sh
 __get_repo_executable pacstrap.sh
