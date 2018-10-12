@@ -9,7 +9,10 @@ REPO_RAW="https://gitlab.com/cabaalexander/doom-arch-install/raw/$BRANCH"
 
 __get_repo_executable(){
   local FILE=$1
-  local DEST=${2:-$FILE}
+  local DEST=./${2:-$FILE}
+  local DEST_DIRPATH=${DEST%/*}
+
+  mkdir -p $DEST_DIRPATH
 
   echo "Fetching ${REPO_RAW%/raw*}/$FILE..."
 
@@ -35,12 +38,13 @@ __execute(){
   __execute ${FILES[*]}
 }
 
-timedatectl set-ntp true
-
 __get_repo_executable prompt.sh
 __get_repo_executable format.sh
 __get_repo_executable pacstrap.sh
 __get_repo_executable chroot.sh
+__get_repo_executable utils/fdisk-efi.sh
+__get_repo_executable utils/fdisk-efi-no.sh
+
 
 ./prompt.sh
 __execute ./format.sh
