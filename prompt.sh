@@ -40,8 +40,13 @@ __save_var(){
   echo "$KEY_VALUE" >> ./.env
 }
 
-__awk_substract(){
-  echo $(awk -F' ' '{printf "%.0f",($1 - $2)}' <<<"$1 $2")
+__awk_math(){
+  [ $# -gt 1 ] && exit 0
+  eval "awk -F' ' '{printf \"%.0f\",($1)}' <<<\"NULL\""
+}
+
+__sd_size_acc(){
+  SD_SIZE_ACC=$(__awk_math "$SD_SIZE_ACC + $1")
 }
 
 # Clean ./.env
@@ -78,25 +83,28 @@ SWAP_MESSAGE="Swap space (GB)\n\nRecommended: $RECOMMENDED_SWAP_SPACE"
 
 __input_box "$SWAP_MESSAGE" ${BASE_DIST}-swap "1" 1
 __save_var "SWAP" $(< ${BASE_DIST}-swap)
+__sd_size_acc $SWAP
 
 ########
 #      #
 # ROOT #
 #      #
 ########
-SD_SIZE_LEFT=$(__awk_substract $(__sd_size $SD) $SWAP)
+SD_SIZE="$(__sd_size $SD)"
+SD_SEVENTY_FIVE_PERCENT=$(__awk_math "($SD_SIZE - $SWAP) * 0.75")
 
-__input_box "Root space (GB)" ${BASE_DIST}-root "$SD_SIZE_LEFT"
+__input_box "Root space (GB)" ${BASE_DIST}-root "$SD_SEVENTY_FIVE_PERCENT"
 __save_var "ROOT" $(< ${BASE_DIST}-root)
+__sd_size_acc $ROOT
 
 ########
 #      #
 # HOME #
 #      #
 ########
-SD_SIZE_LEFT=$(__awk_substract $SD_SIZE_LEFT $ROOT)
+SD_SEVENTY_FIVE_PERCENT=$(__awk_math "$SD_SIZE - $SD_SIZE_ACC")
 
-__input_box "Home space (GB)" ${BASE_DIST}-home "$SD_SIZE_LEFT"
+__input_box "Home space (GB)" ${BASE_DIST}-home "$SD_SEVENTY_FIVE_PERCENT"
 __save_var "HOME" $(< ${BASE_DIST}-home)
 
 ############
@@ -113,7 +121,7 @@ __save_var "HOSTNAME" $(< ${BASE_DIST}-hostname)
 #               #
 #################
 __input_box -p "Root password" ${BASE_DIST}-root-psswd "welc0me"
-__save_var ROOT_PSSWD $(< ${BASE_DIST}-root-psswd)
+__save_var "ROOT_PSSWD" $(< ${BASE_DIST}-root-psswd)
 
 ############
 #          #
@@ -123,6 +131,15 @@ __save_var ROOT_PSSWD $(< ${BASE_DIST}-root-psswd)
 SURE_MSG="All sure? (y/n)\n\n$(cat ./.env)"
 SURE_OPTIONS_HEIGHT=$(cat ./.env | wc -l)
 
+# Save EFI variable if EFI-mode is on
+# ===================================
+ls /sys/firmware/efi/efivars &> /dev/null \
+  && __save_var "EFI" 0
+
 __input_box "$SURE_MSG" ${BASE_DIST}-Q "" $SURE_OPTIONS_HEIGHT
-[[ "$(< $BASE_DIST-Q)" =~ ^[yY][eE]?[sS]?$ ]] || exit 1
+[[ "$(< $BASE_DIST-Q)" =~ ^[yY][eE]?[sS]?$ ]] || {
+  SCRIPT_BASENAME=$(basename ${0})
+  echo "You did not press \`y\`" > ${SCRIPT_BASENAME%.*}.log
+  exit 1
+}
 

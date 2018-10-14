@@ -9,8 +9,9 @@ ARCH_CHROOT_INSTALL="chroot-install.sh"
 cat <<EOF > /mnt/$ARCH_CHROOT_INSTALL
 #!/bin/bash
 
-yes | pacman --needed -S networkmanager
-yes | pacman --needed -S grub
+pacman --needed --noconfirm -S networkmanager
+pacman --needed --noconfirm -S grub
+pacman --needed --noconfirm -S efibootmgr
 
 systemctl enable NetworkManager
 
