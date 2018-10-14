@@ -27,6 +27,3 @@ EOF
 
 mkfs.ext4 /dev/${SD}1
 
-mkdir -p /mnt/boot
-mount /dev/${SD}1 /mnt/boot
-

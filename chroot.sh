@@ -6,29 +6,46 @@ set -e
 
 ARCH_CHROOT_INSTALL="chroot-install.sh"
 
-cat <<EOF > /mnt/$ARCH_CHROOT_INSTALL
+cat <<ARCH_ROOT_EOF > /mnt/$ARCH_CHROOT_INSTALL
 #!/bin/bash
 
-pacman --needed --noconfirm -S networkmanager
-pacman --needed --noconfirm -S grub
-pacman --needed --noconfirm -S efibootmgr
+pacman --needed --noconfirm -S \
+  networkmanager \
+  grub \
+  efibootmgr \
+  intel-ucode \
+  iw \
+  wpa_supplicant \
+  dialog
 
 systemctl enable NetworkManager
 
-grub-install --target=i386-pc /dev/${SD}
-grub-mkconfig -o /boot/grub/grub.cfg
+$(./utils/etc-locale-gen.sh)
 
-echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-echo "en_US ISO-8859-1" >> /etc/locale.gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
 locale-gen
+
+$(./utils/etc-hosts.sh)
 
 ln -sf /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime
 hwclock -w
 
+if [[ "$EFI" ]]
+then
+  bootctl install
+  $(./utils/boot-entry-arch.sh)
+  $(./utils/boot-loader-conf.sh)
+else
+  grub-install --target=i386-pc /dev/${SD}
+fi
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
 echo "root:${ROOT_PSSWD}" | chpasswd
 
 rm ./$ARCH_CHROOT_INSTALL
-EOF
+ARCH_ROOT_EOF
 
 chmod u+x /mnt/$ARCH_CHROOT_INSTALL
 

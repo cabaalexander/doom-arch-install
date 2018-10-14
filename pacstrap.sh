@@ -9,4 +9,3 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 echo ${HOSTNAME} > /mnt/etc/hostname
 
-

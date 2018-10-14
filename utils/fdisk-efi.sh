@@ -35,6 +35,3 @@ EOF
 
 mkfs.fat -F32 /dev/${SD}1
 
-mkdir -p /mnt/boot/EFI
-mount /dev/${SD}1 /mnt/boot/EFI
-

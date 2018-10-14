@@ -38,17 +38,28 @@ __execute(){
   __execute ${FILES[*]}
 }
 
-__get_repo_executable prompt.sh
-__get_repo_executable format.sh
-__get_repo_executable pacstrap.sh
-__get_repo_executable chroot.sh
-__get_repo_executable utils/fdisk-efi.sh
-__get_repo_executable utils/fdisk-efi-no.sh
-
+# Gather needed required files
+# ============================
+while read -rs FILE
+do
+  __get_repo_executable $FILE
+done <<EOF
+  prompt.sh
+  format.sh
+  pacstrap.sh
+  chroot.sh
+  utils/fdisk-efi.sh
+  utils/fdisk-efi-no.sh
+  utils/etc-hosts.sh
+  utils/etc-locale-gen.sh
+  utils/boot-entry-arch.sh
+  utils/boot-loader-conf.sh
+EOF
 
 ./prompt.sh
 __execute ./format.sh
-__execute ./pacstrap.sh ./chroot.sh
+__execute ./pacstrap.sh
+__execute ./chroot.sh
 
 umount -R /mnt
 swapoff /dev/sda2

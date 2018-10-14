@@ -136,7 +136,11 @@ SURE_OPTIONS_HEIGHT=$(cat ./.env | wc -l)
 ls /sys/firmware/efi/efivars &> /dev/null \
   && __save_var "EFI" 0
 
-__input_box "$SURE_MSG" ${BASE_DIST}-Q "" $SURE_OPTIONS_HEIGHT
+# Export all variable
+# ===================
+sed -i 's/^/export /' ./.env
+
+__input_box "$SURE_MSG" ${BASE_DIST}-Q "y" $SURE_OPTIONS_HEIGHT
 [[ "$(< $BASE_DIST-Q)" =~ ^[yY][eE]?[sS]?$ ]] || {
   SCRIPT_BASENAME=$(basename ${0})
   echo "You did not press \`y\`" > ${SCRIPT_BASENAME%.*}.log
