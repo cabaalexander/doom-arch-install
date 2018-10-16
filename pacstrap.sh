@@ -7,5 +7,3 @@ set -e
 pacstrap /mnt base base-devel vim
 genfstab -U /mnt >> /mnt/etc/fstab
 
-echo ${HOSTNAME} > /mnt/etc/hostname
-

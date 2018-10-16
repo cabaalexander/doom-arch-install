@@ -20,9 +20,10 @@ __input_box(){
   fi
 
   local MESSAGE=$1
-  local FD_FILE=$2
-  local DEFAULT_VALUE=$3
-  local HEIGHT=${4:-"0"}
+  local DEFAULT_VALUE=$2
+  local HEIGHT=${3:-"0"}
+
+  local FD_FILE=${BASE_DIST}-reply
 
   whiptail $TYPE \
     --title "Doom arch-linux" \
@@ -33,10 +34,14 @@ __input_box(){
     "$DEFAULT_VALUE" 2> $FD_FILE || exit
 }
 
-__save_var(){
+__save_reply(){
   [ -f ./.env ] || touch ./.env
-  local KEY_VALUE="$1=$2"
+  local VALUE=$(< ${BASE_DIST}-reply)
+
+  local KEY_VALUE="$1=$VALUE"
+
   eval "$KEY_VALUE"
+
   echo "$KEY_VALUE" >> ./.env
 }
 
@@ -66,8 +71,8 @@ SD_AVAILABLE=$(lsblk | egrep "^sd.*$" | awk -F' ' '{printf "• %s %s:",$1,$4}')
 SD_OPTIONS_HEIGHT=$(grep -o : <<<$"$SD_AVAILABLE" | wc -l)
 SD_MESSAGE="Available hard drives (Choose)\n\n$(tr ':' '\n' <<<$SD_AVAILABLE)"
 
-__input_box "$SD_MESSAGE" ${BASE_DIST}-sd "sda" $SD_OPTIONS_HEIGHT
-__save_var "SD" $(< ${BASE_DIST}-sd)
+__input_box "$SD_MESSAGE" "sda" $SD_OPTIONS_HEIGHT
+__save_reply "SD"
 
 ########
 #      #
@@ -81,8 +86,8 @@ RECOMMENDED_SWAP_SPACE=$(
 )
 SWAP_MESSAGE="Swap space (GB)\n\nRecommended: $RECOMMENDED_SWAP_SPACE"
 
-__input_box "$SWAP_MESSAGE" ${BASE_DIST}-swap "1" 1
-__save_var "SWAP" $(< ${BASE_DIST}-swap)
+__input_box "$SWAP_MESSAGE" "1" 1
+__save_reply "SWAP"
 __sd_size_acc $SWAP
 
 ########
@@ -93,8 +98,8 @@ __sd_size_acc $SWAP
 SD_SIZE="$(__sd_size $SD)"
 SD_SEVENTY_FIVE_PERCENT=$(__awk_math "($SD_SIZE - $SWAP) * 0.75")
 
-__input_box "Root space (GB)" ${BASE_DIST}-root "$SD_SEVENTY_FIVE_PERCENT"
-__save_var "ROOT" $(< ${BASE_DIST}-root)
+__input_box "Root space (GB)" "$SD_SEVENTY_FIVE_PERCENT"
+__save_reply "ROOT"
 __sd_size_acc $ROOT
 
 ########
@@ -102,26 +107,26 @@ __sd_size_acc $ROOT
 # HOME #
 #      #
 ########
-SD_SEVENTY_FIVE_PERCENT=$(__awk_math "$SD_SIZE - $SD_SIZE_ACC")
+SD_SPACE_LEFT=$(__awk_math "$SD_SIZE - $SD_SIZE_ACC")
 
-__input_box "Home space (GB)" ${BASE_DIST}-home "$SD_SEVENTY_FIVE_PERCENT"
-__save_var "HOME" $(< ${BASE_DIST}-home)
+__input_box "Home space (GB)" "$SD_SPACE_LEFT"
+__save_reply "HOME"
 
 ############
 #          #
 # HOSTNAME #
 #          #
 ############
-__input_box "Hostname" ${BASE_DIST}-hostname "archlinux"
-__save_var "HOSTNAME" $(< ${BASE_DIST}-hostname)
+__input_box "Hostname" "archlinux"
+__save_reply "HOSTNAME"
 
 #################
 #               #
 # ROOT PASSWORD #
 #               #
 #################
-__input_box -p "Root password" ${BASE_DIST}-root-psswd "welc0me"
-__save_var "ROOT_PSSWD" $(< ${BASE_DIST}-root-psswd)
+__input_box -p "Root password" "welc0me"
+__save_reply "ROOT_PSSWD"
 
 ############
 #          #
@@ -134,14 +139,14 @@ SURE_OPTIONS_HEIGHT=$(cat ./.env | wc -l)
 # Save EFI variable if EFI-mode is on
 # ===================================
 ls /sys/firmware/efi/efivars &> /dev/null \
-  && __save_var "EFI" 0
+  && __save_reply "EFI" 0
 
 # Export all variable
 # ===================
 sed -i 's/^/export /' ./.env
 
-__input_box "$SURE_MSG" ${BASE_DIST}-Q "y" $SURE_OPTIONS_HEIGHT
-[[ "$(< $BASE_DIST-Q)" =~ ^[yY][eE]?[sS]?$ ]] || {
+__input_box "$SURE_MSG" "y" $SURE_OPTIONS_HEIGHT
+[[ "$(< $BASE_DIST-reply)" =~ ^[yY][eE]?[sS]?$ ]] || {
   SCRIPT_BASENAME=$(basename ${0})
   echo "You did not press \`y\`" > ${SCRIPT_BASENAME%.*}.log
   exit 1

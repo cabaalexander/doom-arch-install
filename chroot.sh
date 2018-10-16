@@ -13,7 +13,10 @@ pacman --needed --noconfirm -S \
   networkmanager \
   grub \
   efibootmgr \
-  intel-ucode \
+  intel-ucode
+
+# Wifi
+pacman --needed --noconfirm -S \
   iw \
   wpa_supplicant \
   dialog
@@ -26,6 +29,7 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 locale-gen
 
+echo ${HOSTNAME} > /etc/hostname
 $(./utils/etc-hosts.sh)
 
 ln -sf /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime
