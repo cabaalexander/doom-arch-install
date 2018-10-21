@@ -2,8 +2,6 @@
 
 set -e
 
-trap "{ clear; }" SIGINT SIGTERM EXIT
-
 BRANCH=${1:-master}
 REPO_RAW="https://gitlab.com/cabaalexander/doom-arch-install/raw/$BRANCH"
 

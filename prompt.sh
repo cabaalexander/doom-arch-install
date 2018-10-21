@@ -36,9 +36,16 @@ __input_box(){
 
 __save_reply(){
   [ -f ./.env ] || touch ./.env
-  local VALUE=$(< ${BASE_DIST}-reply)
+  local KEY=$1
 
-  local KEY_VALUE="$1=$VALUE"
+  if [[ "$2" ]]
+  then
+    local VALUE=$2
+  else
+    local VALUE=$(< ${BASE_DIST}-reply)
+  fi
+
+  local KEY_VALUE="$KEY=$VALUE"
 
   eval "$KEY_VALUE"
 
