@@ -1,46 +1,34 @@
 #!/bin/bash
+set -Eeuo pipefail
 
-set -e
+# install my arch rice (raise ? / version)
 
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BRANCH=${1:-master}
-REPO_RAW="https://gitlab.com/cabaalexander/doom-arch-install/raw/$BRANCH"
+REPO_RAW="https://raw.githubusercontent.com/cabaalexander/doom-arch-install/$BRANCH"
+DOWNLOAD_FILES="$CURRENT_DIR"
 
-__get_repo_executable(){
-  local FILE=$1
-  local DEST=./${2:-$FILE}
-  local DEST_DIRPATH=${DEST%/*}
+get_repo_executable(){
+    local file file_in_repo local_file_dir_path downloaded_file
 
-  mkdir -p $DEST_DIRPATH
+    file=$1
+    file_in_repo="$REPO_RAW/$file"
+    local_file_dir_path=$(dirname "$1")
+    downloaded_file="$DOWNLOAD_FILES/$file"
 
-  echo "Fetching ${REPO_RAW%/raw*}/$FILE..."
+    mkdir -p "$DOWNLOAD_FILES/$local_file_dir_path"
 
-  curl -s ${REPO_RAW}/$FILE > $DEST
-  chmod u+x $DEST
-}
+    echo "Fetching '$file'"
 
-__execute(){
-  local FILES=($@)
-
-  ARGS_LENGTH=$(wc -w <<<"${FILES[*]}")
-  [ $ARGS_LENGTH -gt 0 ] || return 0
-
-  local FILE=${FILES[0]}
-  local BASENAME=$(basename $FILE)
-  local LOG="${BASENAME%.*}.log"
-
-  $FILE | tee $LOG
-
-  # Begin recursion
-  shift
-  FILES=($@)
-  __execute ${FILES[*]}
+    curl -s "$file_in_repo" > "$downloaded_file"
+    chmod u+x "$downloaded_file"
 }
 
 # Gather needed required files
 # ============================
-while read -rs FILE
+while read -rs file
 do
-  __get_repo_executable $FILE
+    get_repo_executable "$file"
 done <<EOF
   prompt.sh
   format.sh
@@ -54,13 +42,13 @@ done <<EOF
   utils/boot-loader-conf.sh
 EOF
 
-./prompt.sh
-__execute ./format.sh
-__execute ./pacstrap.sh
-__execute ./chroot.sh
+"$DOWNLOAD_FILES/prompt.sh"
+"$DOWNLOAD_FILES/format.sh"
+"$DOWNLOAD_FILES/pacstrap.sh"
+"$DOWNLOAD_FILES/chroot.sh"
 
-umount -R /mnt
-swapoff /dev/sda2
+# umount -R /mnt
+# swapoff /dev/sda2
 
-reboot
+# reboot
 
