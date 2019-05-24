@@ -4,7 +4,7 @@ title Arch Linux
 linux vmlinuz-linux
 initrd /intel-ucode.img
 initrd /initramfs-linux.img
-options root=UUID=$(blkid -s UUID -o value /dev/${SD}3) rw
+options root=UUID=$(blkid -s UUID -o value /dev/"$SD"3) rw
 BOOT_EOF
 EOF
 

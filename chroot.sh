@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -e
+set -Eeuo pipefail
 
 . ./.env
 
@@ -8,6 +7,7 @@ ARCH_CHROOT_INSTALL="chroot-install.sh"
 
 cat <<ARCH_ROOT_EOF > /mnt/$ARCH_CHROOT_INSTALL
 #!/bin/bash
+set -Eeuo pipefail
 
 pacman --needed --noconfirm -S \
   networkmanager \
@@ -29,24 +29,24 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 locale-gen
 
-echo ${HOSTNAME} > /etc/hostname
+echo ${HOSTNAME:-} > /etc/hostname
 $(./utils/etc-hosts.sh)
 
 ln -sf /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime
 hwclock -w
 
-if [[ "$EFI" ]]
+if [ "$EFI" ]
 then
   bootctl install
   $(./utils/boot-entry-arch.sh)
   $(./utils/boot-loader-conf.sh)
 else
-  grub-install --target=i386-pc /dev/${SD}
+  grub-install --target=i386-pc /dev/${SD:-}
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg
 
-echo "root:${ROOT_PSSWD}" | chpasswd
+chpasswd <<<"root:${ROOT_PSSWD:-}"
 
 rm ./$ARCH_CHROOT_INSTALL
 ARCH_ROOT_EOF

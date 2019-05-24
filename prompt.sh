@@ -20,7 +20,7 @@ sd_size(){
 }
 
 input_box(){
-    local OPT message default_value height input_type fd_file
+    local OPT message default_value height input_type
 
     while getopts ":p" OPT; do
         case $OPT in
@@ -89,7 +89,7 @@ sd_available_height=$(grep -o : <<<$"$sd_available" | wc -l)
 sd_message="Available hard drives (Choose)\n\n$(tr ':' '\n' <<<"$sd_available")"
 
 input_box "$sd_message" "sda" "$sd_available_height"
-save_reply "sd"
+save_reply "SD"
 
 ########
 #      #
@@ -112,7 +112,7 @@ sd_size_acc "$SWAP"
 # ROOT #
 #      #
 ########
-sd_size="$(sd_size "$sd")"
+sd_size="$(sd_size "$SD")"
 sd_seventy_five_percent=$(awk_math "($sd_size - $SWAP) * 0.75")
 
 input_box "Root space (GB)" "$sd_seventy_five_percent"
@@ -151,7 +151,7 @@ save_reply "ROOT_PSSWD"
 # SURE (?) #
 #          #
 ############
-sure_msg="All sure? (y/n)\n\n$(tr '\n' ':' <.env)"
+sure_msg="All sure? (y/n)\n\n$(<.env)"
 sure_options_height=$(awk 'END {print NR}' ./.env)
 
 # Save EFI variable if EFI-mode is on
@@ -166,9 +166,5 @@ sed -i 's/^/export /' ./.env
 
 input_box "$sure_msg" "y" "$sure_options_height"
 
-[[ "$(<"$DOOM_PROMPT_REPLY")" =~ ^[yY][eE]?[sS]?$ ]] || {
-  SCRIPT_BASENAME=$(basename "$0")
-  echo "You did not press \`y\`" > "${SCRIPT_BASENAME%.*}.log"
-  exit 1
-}
+[[ "$(<"$DOOM_PROMPT_REPLY")" =~ ^[yY][eE]?[sS]?$ ]] || exit 1
 

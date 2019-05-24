@@ -28,6 +28,7 @@ get_repo_executable(){
 # ============================
 while read -rs file
 do
+    [ -f "$file" ] && continue
     get_repo_executable "$file"
 done <<EOF
   prompt.sh
@@ -47,8 +48,8 @@ EOF
 "$DOWNLOAD_FILES/pacstrap.sh"
 "$DOWNLOAD_FILES/chroot.sh"
 
-# umount -R /mnt
-# swapoff /dev/sda2
+umount -R /mnt
+swapoff /dev/sda2
 
-# reboot
+reboot
 

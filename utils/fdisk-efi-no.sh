@@ -1,6 +1,7 @@
 #!/bin/bash
+set -Eeuo pipefail
 
-fdisk /dev/${SD} <<EOF
+fdisk /dev/"${SD:-}" <<EOF
 o
 n
 p
@@ -11,19 +12,19 @@ n
 p
 
 
-+${SWAP}G
++${SWAP:-}G
 n
 p
 
 
-+${ROOT}G
++${ROOT:-}G
 n
 p
 
 
-+${HOME}G
++${HOME:-}G
 w
 EOF
 
-mkfs.ext4 /dev/${SD}1
+mkfs.ext4 /dev/"${SD:-}"1
 

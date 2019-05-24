@@ -1,6 +1,7 @@
 #!/bin/bash
+set -Eeuo pipefail
 
-fdisk /dev/${SD} <<EOF
+fdisk /dev/"${SD:-}" <<EOF
 g
 n
 
@@ -9,11 +10,11 @@ n
 n
 
 
-+${SWAP}G
++${SWAP:-}G
 n
 
 
-+${ROOT}G
++${ROOT:-}G
 n
 
 
@@ -33,5 +34,5 @@ t
 w
 EOF
 
-mkfs.fat -F32 /dev/${SD}1
+mkfs.fat -F32 /dev/"${SD:-}"1
 
